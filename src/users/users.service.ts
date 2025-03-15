@@ -1,24 +1,24 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user-dto';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 /*It handles business logic and handles interaction with data source*/
 @Injectable()
 export class UsersService {
-    private users: UserEntity[] = [
-        {
-            id:1,
-            name: "Naveen",
-            email: "naveen@example.com",
-            roles:["frontend developer","fullstack developer"]
-        }
-    ]
+    constructor(
+        @InjectRepository(UserEntity)
+        private readonly userRepository: Repository<UserEntity>
+    ){}
     findAll(){
-        return this.users
+        return this.userRepository.find()
     }
 
-    findOne(id: string){
+    async findOne(id: string){
         // throw 'A random error'
-        const user = this.users.find(user=>user.id.toString() == id)
+        const user = await this.userRepository.findOne({where:{id:Number(id)}})
         if(!user){
             // throw new HttpException(`user ${id} not found`,HttpStatus.NOT_FOUND)
             throw new NotFoundException(`user ${id} not found`)
@@ -26,27 +26,24 @@ export class UsersService {
         return user 
     }
 
-    create(createUserDto: any){
-        this.users.push(createUserDto)
-        return createUserDto;
+    async create(createUserDto: CreateUserDto){
+        const user =  this.userRepository.create(createUserDto)
+        return await this.userRepository.save(user);
     }
 
-    update(id: string, updateUserDto: any){
-        const user = this.findOne(id)
-        // if(user){
-        //     // update user
-        // }else{
-
-        // }
-    }
-
-    remove(id: string){
-        const userIndex = this.users.findIndex(user=>user.id.toString() == id)
-        if(userIndex >= 0){
-            const deletedUser = this.users.splice(userIndex,1)
-            return deletedUser[0]
-        }else{
-
+    async update(id: string, updateUserDto: UpdateUserDto){
+        const user = await this.userRepository.preload({
+            id: +id,
+            ...updateUserDto
+        })
+        if(!user){
+            throw new NotFoundException(`Coffee #${id} is not found`)
         }
+        return await this.userRepository.save(user)
+    }
+
+    async remove(id: string){
+        const user = await this.findOne(id)
+        return await this.userRepository.remove(user);
     }
 }
