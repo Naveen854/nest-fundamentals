@@ -3,21 +3,16 @@ import { response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Controller('users')
 export class UsersController {
     constructor(private readonly useService: UsersService){}
     @Get()
-    findAll(@Query() paginationQuery){
+    findAll(@Query() paginationQuery:PaginationQueryDto){
         // const {offset, limit} = paginationQuery;
-        return this.useService.findAll()
+        return this.useService.findAll(paginationQuery)
     }
-
-    @Get('employees')
-    findAllEmployees(){
-       return this.useService.findAll()
-    }
-
     @Get(':id')
     findOne(@Param('id') id: string){
         return this.useService.findOne(id)

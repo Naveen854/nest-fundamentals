@@ -1,5 +1,6 @@
 import { Optional } from "@nestjs/common";
 import { IsEmail, IsOptional, IsString } from "class-validator";
+import { GroupEntity } from "../entities/group.entity";
 
 export class CreateUserDto {
     @IsString()
@@ -11,5 +12,5 @@ export class CreateUserDto {
     readonly email?: string;
 
     @IsString({each:true})
-    readonly roles: string[];
+    readonly groups: string[];
 }
